@@ -1,0 +1,111 @@
+package toko;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+
+public class FrmProduk extends JFrame {
+    private JTable table;
+    private JButton btnLoad, btnInsert, btnUpdate, btnDelete;
+    private DefaultTableModel model;
+    private ProdukDAO dao = new ProdukDAO();
+
+    public FrmProduk() {
+        setTitle("Data Produk");
+        setSize(600, 400);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(null);
+
+        model = new DefaultTableModel(new Object[]{"Kode", "Nama", "Harga", "Stock"}, 0);
+        table = new JTable(model);
+        JScrollPane sp = new JScrollPane(table);
+        sp.setBounds(20, 20, 550, 200);
+        add(sp);
+
+        btnLoad = new JButton("Load");
+        btnLoad.setBounds(20, 250, 100, 30);
+        add(btnLoad);
+
+        btnInsert = new JButton("Insert");
+        btnInsert.setBounds(130, 250, 100, 30);
+        add(btnInsert);
+
+        btnUpdate = new JButton("Update");
+        btnUpdate.setBounds(240, 250, 100, 30);
+        add(btnUpdate);
+
+        btnDelete = new JButton("Delete");
+        btnDelete.setBounds(350, 250, 100, 30);
+        add(btnDelete);
+
+        btnLoad.addActionListener(e -> loadData());
+        btnInsert.addActionListener(e -> insertData());
+        btnUpdate.addActionListener(e -> updateData());
+        btnDelete.addActionListener(e -> deleteData());
+    }
+
+    private void loadData() {
+        model.setRowCount(0);
+        List<Produk> list = dao.getAllProduk();
+        for (Produk p : list) {
+            model.addRow(new Object[]{
+                    p.getKode(),
+                    p.getNama(),
+                    p.getHarga(),
+                    p.getStock()
+            });
+        }
+    }
+
+    private void insertData() {
+        String nama = JOptionPane.showInputDialog("Nama Produk:");
+        String hargaStr = JOptionPane.showInputDialog("Harga:");
+        String stockStr = JOptionPane.showInputDialog("Stock:");
+
+        try {
+            int harga = Integer.parseInt(hargaStr);
+            int stock = Integer.parseInt(stockStr);
+            dao.insertProduk(new Produk(0, nama, harga, stock));
+            loadData();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Harga/Stock harus angka!");
+        }
+    }
+
+    private void updateData() {
+        int selected = table.getSelectedRow();
+        if (selected != -1) {
+            int kode = (int) table.getValueAt(selected, 0);
+            String nama = JOptionPane.showInputDialog("Nama Produk:", table.getValueAt(selected, 1));
+            String hargaStr = JOptionPane.showInputDialog("Harga:", table.getValueAt(selected, 2));
+            String stockStr = JOptionPane.showInputDialog("Stock:", table.getValueAt(selected, 3));
+
+            try {
+                int harga = Integer.parseInt(hargaStr);
+                int stock = Integer.parseInt(stockStr);
+                dao.updateProduk(new Produk(kode, nama, harga, stock));
+                loadData();
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Harga/Stock harus angka!");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Pilih data yang akan diupdate!");
+        }
+    }
+
+    private void deleteData() {
+        int selected = table.getSelectedRow();
+        if (selected != -1) {
+            int kode = (int) table.getValueAt(selected, 0);
+            dao.deleteProduk(kode);
+            loadData();
+        } else {
+            JOptionPane.showMessageDialog(this, "Pilih data yang akan dihapus!");
+        }
+    }
+
+    public static void main(String[] args) {
+        new FrmProduk().setVisible(true);
+    }
+}
